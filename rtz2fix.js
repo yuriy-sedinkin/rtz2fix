@@ -1,6 +1,6 @@
 // RTZ 2 temporary fix
 // Проверка наличия проблемы
-if ((new Date(2014, 0, 1)).getHours() != 0) {
+if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() != 0) {
   // Переопределяем конструктор
   Date = (function (NativeDate) {
     var NewDate = function (Y, M, D, h, m, s, ms) {
