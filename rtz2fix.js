@@ -71,34 +71,125 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
 
     // Переопределяем метод parse, хотя мало кто его использует
     if (NativeDate.parse) {
+      var isoDateExpression = new RegExp('^' +
+          '(\\d{4}|[\+\-]\\d{6})' + // four-digit year capture or sign +
+        // 6-digit extended year
+          '(?:-(\\d{2})' + // optional month capture
+          '(?:-(\\d{2})' + // optional day capture
+          '(?:' + // capture hours:minutes:seconds.milliseconds
+          'T(\\d{2})' + // hours capture
+          ':(\\d{2})' + // minutes capture
+          '(?:' + // optional :seconds.milliseconds
+          ':(\\d{2})' + // seconds capture
+          '(?:(\\.\\d{1,}))?' + // milliseconds capture
+          ')?' +
+          '(' + // capture UTC offset component
+          'Z|' + // UTC capture
+          '(?:' + // offset specifier +/-hours:minutes
+          '([-+])' + // sign capture
+          '(\\d{2})' + // hours offset capture
+          ':(\\d{2})' + // minutes offset capture
+          ')' +
+          ')?)?)?)?' +
+          '$');
+      var months = [
+          0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
+      ];
+      function dayFromMonth(year, month) {
+          var t = month > 1 ? 1 : 0;
+          return (
+              months[month] +
+              Math.floor((year - 1969 + t) / 4) -
+              Math.floor((year - 1901 + t) / 100) +
+              Math.floor((year - 1601 + t) / 400) +
+              365 * (year - 1970)
+          );
+      }
+
       NewDate._parse = NativeDate.parse;
       NewDate.parse = function (_str) {
-        var _append = true,
-            _realHour,
-            _offset;
-        _str = _str.replace(/([012]?\d|21|22|23)\s*[\:]+\s*(([0-5]?\d)\s*(([\:]+)\s*[0-5]?\d|)|)\s*(am|pm)?/i,
-            function ($0, $1, $2, $3, $4, $5, $6) {
-              _append = false;
-              _realHour = +$1;
-              if ($6 && $6.toLowerCase() == 'pm') {
-                _realHour += 12;
-              }
-              return $0.replace($1, '12').replace($6, '');
-            });
-        _str = _str.replace(/(UTC|GMT)\s*([+-]{1}\d*|)/, function ($0, $1, $2) {
-          if ($2) {
-            _offset = parseInt($2, 10);
-            _offset = -(_offset / 100 * 60 + _offset % 100) * 60000;
+        var match = isoDateExpression.exec(_str);
+        if (match) {
+          // parse months, days, hours, minutes, seconds, and milliseconds
+          // provide default values if necessary
+          // parse the UTC offset component
+          var year = Number(match[1]),
+              month = Number(match[2] || 1) - 1,
+              day = Number(match[3] || 1) - 1,
+//              realhour = Number(match[4] || 0),
+//              hour = 12,
+              hour = Number(match[4] || 0),
+              minute = Number(match[5] || 0),
+              second = Number(match[6] || 0),
+              millisecond = Math.floor(Number(match[7] || 0) * 1000),
+          // When time zone is missed, local offset should be used
+          // (ES 5.1 bug)
+          // see https://bugs.ecmascript.org/show_bug.cgi?id=112
+              isLocalTime = Boolean(match[4] && !match[8]),
+              signOffset = match[9] === '-' ? 1 : -1,
+              hourOffset = Number(match[10] || 0),
+              minuteOffset = Number(match[11] || 0),
+              result;
+          if (
+              hour < (
+                  minute > 0 || second > 0 || millisecond > 0 ?
+              24 : 25
+              ) &&
+              minute < 60 && second < 60 && millisecond < 1000 &&
+              month > -1 && month < 12 && hourOffset < 24 &&
+              minuteOffset < 60 && // detect invalid offsets
+              day > -1 &&
+              day < (
+              dayFromMonth(year, month + 1) -
+              dayFromMonth(year, month)
+              )
+              ) {
+            result = (
+                (dayFromMonth(year, month) + day) * 24 +
+                hour +
+                hourOffset * signOffset
+                ) * 60;
+            result = (
+                (result + minute + minuteOffset * signOffset) * 60 +
+                second
+                ) * 1000 + millisecond;
+            if (!isLocalTime) {
+              var resDate = new NewDate(result);
+              result = result - resDate.getTimezoneOffset()*60000;
+            }
+            if (-8.64e15 <= result && result <= 8.64e15) {
+              return result;
+            }
           }
-          return '';
-        });
-        if (_append) {
-          _str += ' 12:00';
-        }
-        var resDate = new NewDate(NewDate._parse(_str));
-        resDate.setHours(_append ? 0 : _realHour);
-        return resDate.getTime() + (_offset == null ? 0 : _offset + -resDate.getTimezoneOffset() * 60000);
-      };
+          return NaN;
+        } else {
+          var _append = true,
+              _realHour,
+              _offset;
+          _str = _str.replace(/([012]?\d|21|22|23)\s*[\:]+\s*(([0-5]?\d)\s*(([\:]+)\s*[0-5]?\d|)|)\s*(am|pm)?/i,
+              function ($0, $1, $2, $3, $4, $5, $6) {
+                _append = false;
+                _realHour = +$1;
+                if ($6 && $6.toLowerCase() == 'pm') {
+                  _realHour += 12;
+                }
+                return $0.replace($1, '12').replace($6, '');
+              });
+          _str = _str.replace(/(UTC|GMT)\s*([+-]{1}\d*|)/, function ($0, $1, $2) {
+            if ($2) {
+              _offset = parseInt($2, 10);
+              _offset = -(_offset / 100 * 60 + _offset % 100) * 60000;
+            }
+            return '';
+          });
+          if (_append) {
+            _str += ' 12:00';
+          }
+          var resDate = new NewDate(NewDate._parse(_str));
+          resDate.setHours(_append ? 0 : _realHour);
+          return resDate.getTime() + (_offset == null ? 0 : _offset + -resDate.getTimezoneOffset() * 60000);
+      }
+      }
     }
 
     // Вспомогательные методы для преобразования даты-времени в строку
