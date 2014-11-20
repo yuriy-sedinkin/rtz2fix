@@ -95,7 +95,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
       var months = [
           0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
       ];
-      function dayFromMonth(year, month) {
+      var dayFromMonth = function(year, month) {
           var t = month > 1 ? 1 : 0;
           return (
               months[month] +
@@ -104,7 +104,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
               Math.floor((year - 1601 + t) / 400) +
               365 * (year - 1970)
           );
-      }
+      };
 
       NewDate._parse = NativeDate.parse;
       NewDate.parse = function (_str) {
