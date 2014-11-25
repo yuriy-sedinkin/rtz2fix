@@ -13,7 +13,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
               length >= 4 ? new NativeDate(NativeDate.UTC(Y, M, D, h)) :
               length >= 3 ? new NativeDate(NativeDate.UTC(Y, M, D)) :
               length >= 2 ? new NativeDate(NativeDate.UTC(Y, M)) :
-              length >= 1 ? new NativeDate(Y) :
+              length >= 1 ? new NativeDate(+Y) :
           new NativeDate();
       if (length == 0) {
         date = new NativeDate(+date - date.getTimezoneOffset() * 60000);
