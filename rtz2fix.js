@@ -1,22 +1,39 @@
-// RTZ 2 temporary fix
+/**
+ * Временное исправление некорректной работы объекта Date в браузерах (fix Microsoft update KB2998527 for Browsers).
+ * @version 0.2 (release candidate)
+ * @copyright 2014 Юрий Сединкин
+ * @license MIT (http://www.opensource.org/licenses/mit-license.php)
+ * Update: 17-12-2014
+ *
+ * В данной версии:
+ * 1. (!) реализована прозрачная работа с нулевым смещением (+new Date(0) == 0).
+ * 2. Исправлены методы преобразования к строке.
+ * 3. Исправлен метод Date.parse в соответствии с http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.4.2
+ *
+ * Спасибо тем, кто участвовал в разработке и помог обнаружить ошибки:
+ * https://github.com/srogovtsev - критическая ошибка в конструкторе
+ * https://github.com/moongrate - ошибка в методе Date.parse
+ */
 // Проверка наличия проблемы
 if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() != 0) {
   // Переопределяем конструктор
   Date = (function (NativeDate) {
+    var _nullOffset = -new Date(0).getTimezoneOffset()*60000,
+        _sNaN = ''+new Date(Date.parse(null));
     var NewDate = function (Y, M, D, h, m, s, ms) {
       var length = arguments.length;
       var date = length === 1 && String(Y) === Y ? // isString(Y)
-          new NativeDate(NewDate.parse(Y)) :
+          new NewDate(NewDate.parse(Y)) :
               length >= 7 ? new NativeDate(NativeDate.UTC(Y, M, D, h, m, s, ms)) :
               length >= 6 ? new NativeDate(NativeDate.UTC(Y, M, D, h, m, s)) :
               length >= 5 ? new NativeDate(NativeDate.UTC(Y, M, D, h, m)) :
               length >= 4 ? new NativeDate(NativeDate.UTC(Y, M, D, h)) :
               length >= 3 ? new NativeDate(NativeDate.UTC(Y, M, D)) :
               length >= 2 ? new NativeDate(NativeDate.UTC(Y, M)) :
-              length >= 1 ? new NativeDate(+Y) :
+              length >= 1 ? new NativeDate(+Y+_nullOffset) :
           new NativeDate();
       if (length == 0) {
-        date = new NativeDate(+date - date.getTimezoneOffset() * 60000);
+        date = new NativeDate(+date - date.getTimezoneOffset() * 60000 + _nullOffset);
       }
       date.constructor = NewDate;
       return this instanceof NativeDate ? date : date.toString();
@@ -30,12 +47,30 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     if (NativeDate.UTC) {
       NewDate._UTC = NativeDate.UTC;
       NewDate.UTC = function (Y, M, D, h, m, s, ms) {
-        var _date = new NewDate(NewDate._UTC.apply(this, arguments));
-        return +_date - _date.getTimezoneOffset() * 60000;
+        var _date = new NewDate(NewDate._UTC.apply(this, arguments)-_nullOffset);
+        return +_date+_nullOffset - _date.getTimezoneOffset() * 60000-_nullOffset;
       };
     }
     NewDate.prototype = NativeDate.prototype;
     NewDate.prototype.constructor = NewDate;
+
+    if (NewDate.prototype.getTime) {
+      NewDate.prototype._getTime = NewDate.prototype.getTime;
+      NewDate.prototype.getTime = function () {
+        return this._getTime()-_nullOffset;
+      }
+    }
+    if (NewDate.prototype.setTime) {
+      NewDate.prototype._setTime = NewDate.prototype.setTime;
+      NewDate.prototype.setTime = function (_offset) {
+        this._setTime(_offset+_nullOffset);
+      }
+    }
+    if (NewDate.prototype.valueOf) {
+      NewDate.prototype.valueOf = function () {
+        return this.getTime();
+      }
+    }
 
     // setTime, getTime и valueOf переопределять не нужно
     var _dateMethods = ['Date', 'Day', 'FullYear', 'Hours', 'Milliseconds', 'Minutes', 'Month', 'Seconds'];
@@ -53,7 +88,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
         if (NewDate.prototype['getUTC' + _name]) {
           NewDate.prototype['_getUTC' + _name] = NewDate.prototype['getUTC' + _name];
           NewDate.prototype['getUTC' + _name] = function () {
-            return NewDate.prototype['_getUTC' + _name].apply(new NativeDate(this.getTime() + this.getTimezoneOffset()
+            return NewDate.prototype['_getUTC' + _name].apply(new NativeDate(this._getTime() + this.getTimezoneOffset()
                 * 60000));
           }
         }
@@ -61,9 +96,9 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
         if (NewDate.prototype['setUTC' + _name]) {
           NewDate.prototype['_setUTC' + _name] = NewDate.prototype['setUTC' + _name];
           NewDate.prototype['setUTC' + _name] = function () {
-            this.setTime(this.getTime() + this.getTimezoneOffset() * 60000);
+            this._setTime(this._getTime() + this.getTimezoneOffset() * 60000);
             NewDate.prototype['_setUTC' + _name].apply(this, arguments);
-            this.setTime(this.getTime() - this.getTimezoneOffset() * 60000);
+            this._setTime(this._getTime() - this.getTimezoneOffset() * 60000);
           }
         }
       })(_dateMethods[i]);
@@ -95,7 +130,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
       var months = [
           0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
       ];
-      var dayFromMonth = function(year, month) {
+      var dayFromMonth = function (year, month) {
           var t = month > 1 ? 1 : 0;
           return (
               months[month] +
@@ -108,6 +143,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
 
       NewDate._parse = NativeDate.parse;
       NewDate.parse = function (_str) {
+        _str = _str+'';
         var match = isoDateExpression.exec(_str);
         if (match) {
           // parse months, days, hours, minutes, seconds, and milliseconds
@@ -154,8 +190,8 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
                 second
                 ) * 1000 + millisecond;
             if (!isLocalTime) {
-              var resDate = new NewDate(result);
-              result = result - resDate.getTimezoneOffset()*60000;
+              var resDate = new NewDate(result-_nullOffset);
+              result = result - resDate.getTimezoneOffset()*60000 -_nullOffset;
             }
             if (-8.64e15 <= result && result <= 8.64e15) {
               return result;
@@ -179,6 +215,8 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
             if ($2) {
               _offset = parseInt($2, 10);
               _offset = -(_offset / 100 * 60 + _offset % 100) * 60000;
+            } else {
+              _offset = 0;
             }
             return '';
           });
@@ -235,7 +273,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     // Tue Dec 31 2013 23:00:00 GMT+0300
     if (NewDate.prototype.toString) {
       NewDate.prototype.toString = function () {
-        return [_dayName[this.getDay()], _monthName[this.getMonth()], this.getDate(), this.getFullYear(),
+        return isNaN(+this) ? _sNaN : [_dayName[this.getDay()], _monthName[this.getMonth()], this.getDate(), this.getFullYear(),
           [leftZeroFill(this.getHours(), 2), leftZeroFill(this.getMinutes(), 2),
             leftZeroFill(this.getSeconds(), 2)].join(':'), 'UTC' + zoneString(this)].join(' ');
       }
@@ -243,7 +281,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     // 01.01.2014, 00:00:00
     if (NewDate.prototype.toLocaleString) {
       NewDate.prototype.toLocaleString = function () {
-        return [[leftZeroFill(this.getDate(), 2), leftZeroFill(this.getMonth(), 2),
+        return isNaN(+this) ? _sNaN : [[leftZeroFill(this.getDate(), 2), leftZeroFill(this.getMonth()+1, 2),
           leftZeroFill(this.getFullYear(), 4)].join('.'), ', ',
           [leftZeroFill(this.getHours(), 2), leftZeroFill(this.getMinutes(), 2),
             leftZeroFill(this.getSeconds(), 2)].join(':')].join('');
@@ -253,7 +291,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     // 01.01.2014
     if (NewDate.prototype.toLocaleDateString) {
       NewDate.prototype.toLocaleDateString = function () {
-        return [leftZeroFill(this.getDate(), 2), leftZeroFill(this.getMonth(), 2),
+        return isNaN(+this) ? _sNaN : [leftZeroFill(this.getDate(), 2), leftZeroFill(this.getMonth()+1, 2),
           leftZeroFill(this.getFullYear(), 4)].join('.');
       }
     }
@@ -261,7 +299,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     // 00:00:00
     if (NewDate.prototype.toLocaleTimeString) {
       NewDate.prototype.toLocaleTimeString = function () {
-        return [leftZeroFill(this.getHours(), 2), leftZeroFill(this.getMinutes(), 2),
+        return isNaN(+this) ? _sNaN : [leftZeroFill(this.getHours(), 2), leftZeroFill(this.getMinutes(), 2),
           leftZeroFill(this.getSeconds(), 2)].join(':');
       }
     }
@@ -269,14 +307,14 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     // Tue Dec 31 2013
     if (NewDate.prototype.toDateString) {
       NewDate.prototype.toDateString = function () {
-        return [_dayName[this.getDay()], _monthName[this.getMonth()], this.getDate(), this.getFullYear()].join(' ');
+        return isNaN(+this) ? _sNaN : [_dayName[this.getDay()], _monthName[this.getMonth()], this.getDate(), this.getFullYear()].join(' ');
       }
     }
 
     // 23:00:00 GMT+0300
     if (NewDate.prototype.toTimeString) {
       NewDate.prototype.toTimeString = function () {
-        return [[leftZeroFill(this.getHours(), 2), leftZeroFill(this.getMinutes(), 2),
+        return isNaN(+this) ? _sNaN : [[leftZeroFill(this.getHours(), 2), leftZeroFill(this.getMinutes(), 2),
           leftZeroFill(this.getSeconds(), 2)].join(':'), 'UTC' + zoneString(this)].join(' ');
       }
     }
@@ -284,7 +322,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     // Tue, 31 Dec 2013 20:00:00 GMT
     if (NewDate.prototype.toGMTString) {
       NewDate.prototype.toGMTString = function () {
-        return [_dayName[this.getUTCDay()], _monthName[this.getUTCMonth()], this.getUTCDate(), this.getUTCFullYear(),
+        return isNaN(+this) ? _sNaN : [_dayName[this.getUTCDay()], _monthName[this.getUTCMonth()], this.getUTCDate(), this.getUTCFullYear(),
           [leftZeroFill(this.getUTCHours(), 2), leftZeroFill(this.getUTCMinutes(), 2),
             leftZeroFill(this.getUTCSeconds(), 2)].join(':'), 'UTC'].join(' ');
       }
@@ -292,7 +330,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     // Tue, 31 Dec 2013 20:00:00 GMT
     if (NewDate.prototype.toUTCString) {
       NewDate.prototype.toUTCString = function () {
-        return [_dayName[this.getUTCDay()], _monthName[this.getUTCMonth()], this.getUTCDate(), this.getUTCFullYear(),
+        return isNaN(+this) ? _sNaN : [_dayName[this.getUTCDay()], _monthName[this.getUTCMonth()], this.getUTCDate(), this.getUTCFullYear(),
           [leftZeroFill(this.getUTCHours(), 2), leftZeroFill(this.getUTCMinutes(), 2),
             leftZeroFill(this.getUTCSeconds(), 2)].join(':'), 'UTC'].join(' ');
       }
@@ -300,7 +338,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     // 2013-12-31T20:00:00.000Z
     if (NewDate.prototype.toISOString) {
       NewDate.prototype.toISOString = function () {
-        return [[leftZeroFill(this.getUTCFullYear(), 4), leftZeroFill(this.getUTCMonth() + 1, 2),
+        return isNaN(+this) ? _sNaN : [[leftZeroFill(this.getUTCFullYear(), 4), leftZeroFill(this.getUTCMonth() + 1, 2),
           leftZeroFill(this.getUTCDate(), 2)].join('-'), 'T',
           [leftZeroFill(this.getUTCHours(), 2), leftZeroFill(this.getUTCMinutes(), 2),
             leftZeroFill(this.getUTCSeconds(), 2)].join(':'), '.', this.getUTCMilliseconds(), 'Z'].join('');
@@ -309,7 +347,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     // 2013-12-31T20:00:00.000Z
     if (NewDate.prototype.toJSON) {
       NewDate.prototype.toJSON = function () {
-        return [[leftZeroFill(this.getUTCFullYear(), 4), leftZeroFill(this.getUTCMonth() + 1, 2),
+        return isNaN(+this) ? _sNaN : [[leftZeroFill(this.getUTCFullYear(), 4), leftZeroFill(this.getUTCMonth() + 1, 2),
           leftZeroFill(this.getUTCDate(), 2)].join('-'), 'T',
           [leftZeroFill(this.getUTCHours(), 2), leftZeroFill(this.getUTCMinutes(), 2),
             leftZeroFill(this.getUTCSeconds(), 2)].join(':'), '.', this.getUTCMilliseconds(), 'Z'].join('');

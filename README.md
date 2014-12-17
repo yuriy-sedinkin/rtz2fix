@@ -38,3 +38,9 @@ new Date(2014, 0, 1).toString() == "Wed Jan 01 2014 01:00:00 GMT+0400 (Russia TZ
 На данный момент (возможно это будет изменено позже):
 Если вы используете es5-shim.js, то необходимо загрузить rtz2fix.js после es5-shim.js.
 Нельзя выполнять код rtz2fix.js во время работы requirejs т.к. это приведет к timeout error.
+
+# Благодарности #
+Спасибо тем, кто участвовал в разработке и помог обнаружить ошибки:
+
+- [srogovtsev](https://github.com/srogovtsev "https://github.com/srogovtsev") - критическая ошибка в конструкторе
+- [moongrate](https://github.com/moongrate "https://github.com/moongrate") - ошибка в методе Date.parse (http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.4.2)
