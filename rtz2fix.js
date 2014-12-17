@@ -108,6 +108,9 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
 
       NewDate._parse = NativeDate.parse;
       NewDate.parse = function (_str) {
+        if (typeof _str !== "string" && _str.toString) {
+          _str = _str.toString();
+        }
         var match = isoDateExpression.exec(_str);
         if (match) {
           // parse months, days, hours, minutes, seconds, and milliseconds
