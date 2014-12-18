@@ -1,14 +1,12 @@
 /**
  * Временное исправление некорректной работы объекта Date в браузерах (fix Microsoft update KB2998527 for Browsers).
- * @version 0.2 (release candidate)
+ * @version 0.3 (release candidate)
  * @copyright 2014 Юрий Сединкин
  * @license MIT (http://www.opensource.org/licenses/mit-license.php)
- * Update: 17-12-2014
+ * Update: 18-12-2014
  *
  * В данной версии:
- * 1. (!) реализована прозрачная работа с нулевым смещением (+new Date(0) == 0).
- * 2. Исправлены методы преобразования к строке.
- * 3. Исправлен метод Date.parse в соответствии с http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.4.2
+ * 1. Исправлена ошибка, обнаруженная в режиме совместимости IE - переопределение метода getTime в прототипе приводило к большим проблемам.
  *
  * Спасибо тем, кто участвовал в разработке и помог обнаружить ошибки:
  * https://github.com/srogovtsev - критическая ошибка в конструкторе
@@ -34,9 +32,18 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
               length >= 1 ? new NativeDate(+Y+_nullOffset) :
           new NativeDate();
       if (length == 0) {
-        date = new NativeDate(+date - date.getTimezoneOffset() * 60000 + _nullOffset);
+        date = new NativeDate(+date - date.getTimezoneOffset() * 60000);
       }
       date.constructor = NewDate;
+      date.getTime = function () {
+        return this._getTime()-_nullOffset;
+      };
+      date.setTime = function (_offset) {
+        this._setTime(_offset+_nullOffset);
+      };
+      date.valueOf = function () {
+        return this.getTime();
+      };
       return this instanceof NativeDate ? date : date.toString();
     };
 
@@ -54,24 +61,8 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     }
     NewDate.prototype = NativeDate.prototype;
     NewDate.prototype.constructor = NewDate;
-
-    if (NewDate.prototype.getTime) {
-      NewDate.prototype._getTime = NewDate.prototype.getTime;
-      NewDate.prototype.getTime = function () {
-        return this._getTime()-_nullOffset;
-      }
-    }
-    if (NewDate.prototype.setTime) {
-      NewDate.prototype._setTime = NewDate.prototype.setTime;
-      NewDate.prototype.setTime = function (_offset) {
-        this._setTime(_offset+_nullOffset);
-      }
-    }
-    if (NewDate.prototype.valueOf) {
-      NewDate.prototype.valueOf = function () {
-        return this.getTime();
-      }
-    }
+    NewDate.prototype._getTime = NewDate.prototype.getTime;
+    NewDate.prototype._setTime = NewDate.prototype.setTime;
 
     // setTime, getTime и valueOf переопределять не нужно
     var _dateMethods = ['Date', 'Day', 'FullYear', 'Hours', 'Milliseconds', 'Minutes', 'Month', 'Seconds'];
