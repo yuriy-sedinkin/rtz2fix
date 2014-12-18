@@ -2,6 +2,7 @@ rtz2fix
 =======
 
 Временное исправление некорректной работы объекта Date в браузерах (fix Microsoft update KB2998527 for Browsers).
+- [проверить свой браузер](https://rawgit.com/yuriy-sedinkin/rtz2fix/master/test_browser.html)
 
 # Краткое описание проблемы #
 
