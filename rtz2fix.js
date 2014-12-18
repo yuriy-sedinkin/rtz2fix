@@ -13,6 +13,7 @@
  * Спасибо тем, кто участвовал в разработке и помог обнаружить ошибки:
  * https://github.com/srogovtsev - критическая ошибка в конструкторе
  * https://github.com/moongrate - ошибка в методе Date.parse
+ * https://github.com/es-shims/es5-shim - способ переопределения Date позаимствован из es5-shim.js
  */
 // Проверка наличия проблемы
 if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() != 0) {
