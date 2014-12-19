@@ -56,7 +56,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
       NewDate._UTC = NativeDate.UTC;
       NewDate.UTC = function (Y, M, D, h, m, s, ms) {
         var _date = new NewDate(NewDate._UTC.apply(this, arguments)-_nullOffset);
-        return +_date+_nullOffset - _date.getTimezoneOffset() * 60000-_nullOffset;
+        return +_date - _date.getTimezoneOffset() * 60000;
       };
     }
     NewDate.prototype = NativeDate.prototype;
