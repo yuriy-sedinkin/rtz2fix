@@ -21,30 +21,30 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
         _sNaN = ''+new Date(Date.parse(null));
     var NewDate = function (Y, M, D, h, m, s, ms) {
       if (this instanceof NativeDate) {
-      var length = arguments.length;
-      var date = length === 1 && String(Y) === Y ? // isString(Y)
-          new NewDate(NewDate.parse(Y)) :
-              length >= 7 ? new NativeDate(NativeDate.UTC(Y, M, D, h, m, s, ms)) :
-              length >= 6 ? new NativeDate(NativeDate.UTC(Y, M, D, h, m, s)) :
-              length >= 5 ? new NativeDate(NativeDate.UTC(Y, M, D, h, m)) :
-              length >= 4 ? new NativeDate(NativeDate.UTC(Y, M, D, h)) :
-              length >= 3 ? new NativeDate(NativeDate.UTC(Y, M, D)) :
-              length >= 2 ? new NativeDate(NativeDate.UTC(Y, M)) :
-              length >= 1 ? new NativeDate(+Y+_nullOffset) :
-          new NativeDate();
-      if (length == 0) {
-        date = new NativeDate(+date - date.getTimezoneOffset() * 60000);
-      }
-      date.constructor = NewDate;
-      date.getTime = function () {
-        return this._getTime()-_nullOffset;
-      };
-      date.setTime = function (_offset) {
-        this._setTime(_offset+_nullOffset);
-      };
-      date.valueOf = function () {
-        return this.getTime();
-      };
+        var length = arguments.length;
+        var date = length === 1 && String(Y) === Y ? // isString(Y)
+            new NewDate(NewDate.parse(Y)) :
+                length >= 7 ? new NativeDate(NativeDate.UTC(Y, M, D, h, m, s, ms)) :
+                length >= 6 ? new NativeDate(NativeDate.UTC(Y, M, D, h, m, s)) :
+                length >= 5 ? new NativeDate(NativeDate.UTC(Y, M, D, h, m)) :
+                length >= 4 ? new NativeDate(NativeDate.UTC(Y, M, D, h)) :
+                length >= 3 ? new NativeDate(NativeDate.UTC(Y, M, D)) :
+                length >= 2 ? new NativeDate(NativeDate.UTC(Y, M)) :
+                length >= 1 ? new NativeDate(+Y+_nullOffset) :
+            new NativeDate();
+        if (length == 0) {
+          date = new NativeDate(+date - date.getTimezoneOffset() * 60000);
+        }
+        date.constructor = NewDate;
+        date.getTime = function () {
+          return this._getTime()-_nullOffset;
+        };
+        date.setTime = function (_offset) {
+          this._setTime(_offset+_nullOffset);
+        };
+        date.valueOf = function () {
+          return this.getTime();
+        };
         return date;
       } else {
         return new NewDate().toString();
