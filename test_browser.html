@@ -56,32 +56,36 @@
     document.writeln('<pre>');
     if (!Date.prototype._setTime || !Date._parse) {
       if (navigator.userAgent.toLowerCase().indexOf('msie') != -1 && document.documentMode != 8) {
-        info('В текущем режиме браузера патч не требуется, попробуйте поменять "Document Mode" на IE8 (F12 - панель разработчика)');
+        info('<b>В текущем режиме браузера патч не требуется, попробуйте поменять "Document Mode" на IE8 (F12 - панель разработчика)</b><br><b>-------------------------------------------------------------------------------------------------------------------</b>');
       } else {
-        info('Патч не требуется');
+        info('<b>Патч не требуется</b><br><b>-----------------</b>');
       }
     } else {
-      info('<b>Ошибка присутствует. Используется доработаный объект Date:</b><br><b>------------------------------------</b>');
-      eq_val_test('new Date().toString()', '""+(new Date(new Date()))');
-      eq_val_test('Date(Date.now())', 'new Date(Date.now())');
-      eq_val_test('Date(0)', 'new Date(0)');
-      eq_val_test('new Date(0).getUTCHours()', '0');
-      eq_val_test('+new Date(0)', '0');
-      if (Date.prototype.toLocaleTimeString) {
-        eq_val_test('new Date(new Date(0).getTimezoneOffset()*60000).toLocaleTimeString()', '"00:00:00"');
-      }
-      eq_val_test('new Date(2014, 0, 1).toString()', '(new Date(new Date(2014, 0, 1))).toString()');
-      eq_val_test('new Date(2014, 0, 1).getHours()', '0');
-      eq_val_test('new Date(2015, 0, 7).getHours()', '0');
-
-      eq_date_test('new Date("01/07/2015 2:00 GMT+0400")', 'new Date("2015-01-07T02:00:00+04:00")');
-      eq_date_test('new Date("01/06/2015 23:59 UTC")', 'new Date("2015-01-06T23:59:00Z")');
-      eq_date_test('new Date(2014,0,1)', 'new Date(Date.parse(\'2014/1/1\'))');
-      eq_date_test('new Date(Date.UTC(2014,0,1))', 'new Date(Date.parse(\'2014/1/1 4:00\'))');
-      eq_date_test('new Date(2014,0,1,12)', 'new Date(Date.parse(\'2014/1/1 00:00 pm\'))');
-      eq_date_test('new Date(2015,0,7)', 'new Date(Date.parse(\'Tue Jan 7 2015 00:00:00\'))');
-      eq_date_test('new Date(Date.UTC(2015,0,7))', 'new Date(Date.parse(\'Tue Jan 7 2015 00:00:00 UTC+0000\'))');
+      info('<b>Ошибка присутствует. Используется доработаный объект Date:</b><br><b>----------------------------------------------------------</b>');
     }
+
+    info('<br><b>Результаты проверок:</b><br><b>--------------------</b>');
+    eq_val_test('new Date().toString()', '""+(new Date(new Date()))');
+    eq_val_test('Date(Date.now())', 'new Date(Date.now())');
+    eq_val_test('Date("2015-01-01")', 'new Date().toString()');
+    eq_val_test('Date("2015-01-01")', 'Date()');
+    eq_val_test('new Date(0).getUTCHours()', '0');
+    eq_val_test('+new Date(0)', '0');
+    if (Date.prototype.toLocaleTimeString) {
+    eq_val_test('new Date(new Date(0).getTimezoneOffset()*60000).toLocaleTimeString()', '"0:00:00"');
+    }
+    eq_val_test('new Date(2014, 0, 1).toString()', '(new Date(new Date(2014, 0, 1))).toString()');
+    eq_val_test('new Date(2014, 0, 1).getHours()', '0');
+    eq_val_test('new Date(2015, 0, 7).getHours()', '0');
+
+    eq_date_test('new Date("01/07/2015 2:00 GMT+0400")', 'new Date("2015-01-07T02:00:00+04:00")');
+    eq_date_test('new Date("01/06/2015 23:59 UTC")', 'new Date("2015-01-06T23:59:00Z")');
+    eq_date_test('new Date(2014,0,1)', 'new Date(Date.parse(\'2014/1/1\'))');
+    eq_date_test('new Date(Date.UTC(2014,0,1))', 'new Date(Date.parse(\'2014/1/1 4:00\'))');
+    eq_date_test('new Date(2014,0,1,12)', 'new Date(Date.parse(\'2014/1/1 00:00 pm\'))');
+    eq_date_test('new Date(2015,0,7)', 'new Date(Date.parse(\'Tue Jan 7 2015 00:00:00\'))');
+    eq_date_test('new Date(Date.UTC(2015,0,7))', 'new Date(Date.parse(\'Tue Jan 7 2015 00:00:00 UTC+0000\'))');
+
     document.writeln('</pre>');
     document.close();
   </script>

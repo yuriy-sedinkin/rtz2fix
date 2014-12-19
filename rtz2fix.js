@@ -20,6 +20,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     var _nullOffset = -new Date(0).getTimezoneOffset()*60000,
         _sNaN = ''+new Date(Date.parse(null));
     var NewDate = function (Y, M, D, h, m, s, ms) {
+      if (this instanceof NativeDate) {
       var length = arguments.length;
       var date = length === 1 && String(Y) === Y ? // isString(Y)
           new NewDate(NewDate.parse(Y)) :
@@ -44,7 +45,10 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
       date.valueOf = function () {
         return this.getTime();
       };
-      return this instanceof NativeDate ? date : date.toString();
+        return date;
+      } else {
+        return new NewDate().toString();
+      }
     };
 
     if (NativeDate.now) {
@@ -291,7 +295,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
     // 00:00:00
     if (NewDate.prototype.toLocaleTimeString) {
       NewDate.prototype.toLocaleTimeString = function () {
-        return isNaN(+this) ? _sNaN : [leftZeroFill(this.getHours(), 2), leftZeroFill(this.getMinutes(), 2),
+        return isNaN(+this) ? _sNaN : [this.getHours(), leftZeroFill(this.getMinutes(), 2),
           leftZeroFill(this.getSeconds(), 2)].join(':');
       }
     }
