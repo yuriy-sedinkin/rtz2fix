@@ -2,7 +2,8 @@ rtz2fix
 =======
 
 Временное исправление некорректной работы объекта Date в браузерах (fix Microsoft update KB2998527 for Browsers).
-- [проверить свой браузер](https://rawgit.com/yuriy-sedinkin/rtz2fix/master/test_browser.html)
+
+[Проверить свой браузер](https://rawgit.com/yuriy-sedinkin/rtz2fix/master/test_browser.html)
 
 # Краткое описание проблемы #
 
@@ -43,6 +44,7 @@ new Date(2014, 0, 1).toString() == "Wed Jan 01 2014 01:00:00 GMT+0400 (Russia TZ
 # Благодарности #
 Спасибо тем, кто участвовал в разработке и помог обнаружить ошибки:
 
-- [srogovtsev](https://github.com/srogovtsev "https://github.com/srogovtsev") - критическая ошибка в конструкторе
+- [Dmitrii Pakhtinov] (https://github.com/devote "https://github.com/devote")- метод getTimezoneOffset использующий свою таблицу сдвигов для проблемных таймзон!
+- [Serg Rogovtsev](https://github.com/srogovtsev "https://github.com/srogovtsev") - критическая ошибка в конструкторе
 - [moongrate](https://github.com/moongrate "https://github.com/moongrate") - ошибка в методе Date.parse (http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.4.2)
 - [A community host for shims and polyfills that are compliant to the EcmaScript specs](https://github.com/es-shims/es5-shim "es5-shim") - способ переопределения Date позаимствован из es5-shim.js
