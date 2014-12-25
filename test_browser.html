@@ -99,7 +99,7 @@
 
     eq_date_test('new Date("01/07/2015 2:00 GMT+0400")', 'new Date("2015-01-07T02:00:00+04:00")');
     eq_date_test('new Date("01/06/2015 23:59 UTC")', 'new Date("2015-01-06T23:59:00Z")');
-    eq_date_test('new Date(Date.UTC(2014,0,1))', 'new Date(Date.parse(\'2014/1/1 4:00\'))');
+    eq_date_test('new Date(2014,0,1)', 'new Date(Date.parse(\'2014/1/1\'))');
     eq_date_test('new Date(2014,0,1,12)', 'new Date(Date.parse(\'2014/1/1 00:00 pm\'))');
     eq_date_test('new Date(2015,0,7)', 'new Date(Date.parse(\'Tue Jan 7 2015 00:00:00\'))');
     eq_date_test('new Date(Date.UTC(2015,0,7))', 'new Date(Date.parse(\'Tue Jan 7 2015 00:00:00 UTC+0000\'))');
@@ -111,6 +111,7 @@
 
     if (new Date().getTimezoneOffset() == -180) {
       info('<br><b>Тесты только для Moscow, St. Petersburg, Volgograd (RTZ 2):<br>-----------------------------------------------------------</b>');
+      eq_date_test('new Date(Date.UTC(2014,0,1))', 'new Date(Date.parse(\'2014/1/1 4:00\'))');
       eq_val_test('(function () {var a = new Date(2014, 9, 26, 1, 59, 59); a.setUTCHours(1); return a;})().getDate()', '25');
       eq_val_test('(function () {var a = new Date(2014, 9, 26, 1, 59, 59); a.setUTCHours(1); return a;})().getHours()', '5');
       eq_val_test('new Date(2014, 9, 25).getTimezoneOffset()', '-240');
@@ -120,7 +121,6 @@
       eq_val_test('new Date(2014, 9, 26).getTimezoneOffset()', '-240');
       eq_val_test('new Date(2014, 9, 26, 1, 59, 59).getTimezoneOffset()', '-240', true);
       eq_val_test('new Date(2014, 9, 26,2).getTimezoneOffset()', '-180');
-      eq_date_test('new Date(2014,0,1)', 'new Date(Date.parse(\'2014/1/1\'))');
     }
 
     document.writeln('</pre>');
