@@ -1,12 +1,12 @@
 /**
  * Временное исправление некорректной работы объекта Date в браузерах (fix Microsoft update KB2998527 for Browsers).
- * @version 0.5
+ * @version 0.6
  * @copyright 2014 Юрий Сединкин
  * @license MIT (http://www.opensource.org/licenses/mit-license.php)
  * Update: 26-12-2014
  *
  * В данной версии:
- * 1. Исправлена ошибка обнаруженная при тестировании setHours вблизи перевода времени с +0400 -> +0300 ( new Date(2014, 9, 26).setHours(0) )
+ * 1. Откорректирован механизм определения таблицы перевода времени
  *
  * Спасибо тем, кто участвовал в разработке и помог обнаружить ошибки:
  * Dmitrii Pakhtinov (https://github.com/devote) - метод getTimezoneOffset использующий свою таблицу сдвигов для проблемных таймзон!
@@ -50,19 +50,27 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
        */
       var currentOffsetSeconds = new NativeDate().getTimezoneOffset();
       /**
-       * Будет иметь true если пользователь находится в России
+       * Будет иметь true если есть подозрение, что пользователь находится в России
+       * Если у вас есть возможность проинициализировать этот флаг другим способом - сделайте это самостоятельно!
        * @type {boolean}
        */
-      var isRussian = window.navigator.language === 'ru'
+      var isRussian = window.navigator.language === 'ru' || window.navigator.language === 'ru-RU'
         || window.navigator.systemLanguage === 'ru'
         || /(russia|[а-яёЁ])/i.test(new NativeDate().toString()+new NativeDate().toLocaleString());
 
-      if (isRussian) {
-        // ищет таблицу необходимых часовых поясов
-        for(var length = timezone.length; length--;) {
-          if (currentOffsetSeconds === timezone[length].zone[timezone[length].zone.length - 1]) {
-            // ура, шашли подходящую зону
-            result = timezone[length];
+      // ищет таблицу необходимых часовых поясов
+      for(var length = timezone.length; length--;) {
+        if (currentOffsetSeconds === timezone[length].zone[timezone[length].zone.length - 1]) {
+          // ура, нашли подходящую зону
+          result = timezone[length];
+          if (!isRussian) {
+            // Если нет уверенности, что мы в России, то проверяем, что последний перевод времени был в ожидаемом диапазоне
+            var testDate = new Date(result.zone[result.zone.length - 2] * 60000);
+            if (new Date(+testDate - 24 * 60 * 60000).getTimezoneOffset() == new Date(+testDate + 24 * 60 * 60000).getTimezoneOffset()) {
+              result = null;
+            }
+          }
+          if (result) {
             break;
           }
         }
@@ -201,8 +209,6 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
             var year = Number(match[1]),
                 month = Number(match[2] || 1) - 1,
                 day = Number(match[3] || 1) - 1,
-  //              realhour = Number(match[4] || 0),
-  //              hour = 12,
                 hour = Number(match[4] || 0),
                 minute = Number(match[5] || 0),
                 second = Number(match[6] || 0),
