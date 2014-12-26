@@ -112,6 +112,12 @@
     if (new Date().getTimezoneOffset() == -180) {
       info('<br><b>Тесты только для Moscow, St. Petersburg, Volgograd (RTZ 2):<br>-----------------------------------------------------------</b>');
       eq_date_test('new Date(Date.UTC(2014,0,1))', 'new Date(Date.parse(\'2014/1/1 4:00\'))');
+      eq_val_test('(function () {var a = new Date(2014, 9, 25); a.setHours(0); return a;})().getHours()', '0');
+      eq_val_test('(function () {var a = new Date(2014, 9, 25); a.setHours(1); return a;})().getHours()', '1');
+      eq_val_test('(function () {var a = new Date(2014, 9, 25); a.setHours(2); return a;})().getHours()', '2');
+      eq_val_test('(function () {var a = new Date(2014, 9, 26); a.setHours(0); return a;})().getHours()', '0');
+      eq_val_test('(function () {var a = new Date(2014, 9, 26); a.setHours(1); return a;})().getHours()', '1');
+      eq_val_test('(function () {var a = new Date(2014, 9, 26); a.setHours(2); return a;})().getHours()', '2');
       eq_val_test('(function () {var a = new Date(2014, 9, 26, 1, 59, 59); a.setUTCHours(1); return a;})().getDate()', '25');
       eq_val_test('(function () {var a = new Date(2014, 9, 26, 1, 59, 59); a.setUTCHours(1); return a;})().getHours()', '5');
       eq_val_test('new Date(2014, 9, 25).getTimezoneOffset()', '-240');

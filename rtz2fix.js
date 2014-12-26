@@ -1,14 +1,12 @@
 /**
  * Временное исправление некорректной работы объекта Date в браузерах (fix Microsoft update KB2998527 for Browsers).
- * @version 0.4
+ * @version 0.5
  * @copyright 2014 Юрий Сединкин
  * @license MIT (http://www.opensource.org/licenses/mit-license.php)
  * Update: 25-12-2014
  *
  * В данной версии:
- * 1. Реализована работа с таблицами преобразования времени для RTZ1-RTZ11.
- * 2. Исправлена ошибка при преобразовании в UTC и обратно.
- * 3. Теперь патч применяется только, если удалось обнаружить таблицу преобразования времени.
+ * 1. Исправлена ошибка обнаруженная при тестировании setHours вблизи перевода времени с +0400 -> +0300 ( new Date(2014, 9, 26).setHours(0) )
  *
  * Спасибо тем, кто участвовал в разработке и помог обнаружить ошибки:
  * Dmitrii Pakhtinov (https://github.com/devote) - метод getTimezoneOffset использующий свою таблицу сдвигов для проблемных таймзон!
@@ -98,8 +96,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
 
       /**
        * Преобразование локального времени в UTC смещение
-       * Параметры: если один параметр, то преобразования нет - это уже смещение,
-       * если больше, то: Y, M[, D, h, m, s, ms]
+       * Параметры: Y, M[, D, h, m, s, ms]
        * @returns {number}
        */
       function toUTC() {
@@ -150,7 +147,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
             NewDate.prototype['set' + _name] = function () {
               this._setTime(this.getTime() - this.getTimezoneOffset() * 60000);
               NewDate.prototype['setUTC' + _name].apply(this, arguments);
-              this._setTime(this.getTime() + this.getTimezoneOffset() * 60000);
+              this._setTime(toUTC(this.getUTCFullYear(), this.getUTCMonth(), this.getUTCDate(), this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds(), this.getUTCMilliseconds()));
             }
           }
         })(_dateMethods[i]);
