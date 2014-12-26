@@ -3,7 +3,7 @@
  * @version 0.5
  * @copyright 2014 Юрий Сединкин
  * @license MIT (http://www.opensource.org/licenses/mit-license.php)
- * Update: 25-12-2014
+ * Update: 26-12-2014
  *
  * В данной версии:
  * 1. Исправлена ошибка обнаруженная при тестировании setHours вблизи перевода времени с +0400 -> +0300 ( new Date(2014, 9, 26).setHours(0) )
