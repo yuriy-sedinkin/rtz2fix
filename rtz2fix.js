@@ -156,6 +156,7 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
               this._setTime(this.getTime() - this.getTimezoneOffset() * 60000);
               NewDate.prototype['setUTC' + _name].apply(this, arguments);
               this._setTime(toUTC(this.getUTCFullYear(), this.getUTCMonth(), this.getUTCDate(), this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds(), this.getUTCMilliseconds()));
+              return this.getTime();
             }
           }
         })(_dateMethods[i]);
