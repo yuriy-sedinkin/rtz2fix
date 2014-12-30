@@ -1,15 +1,17 @@
 /**
  * Временное исправление некорректной работы объекта Date в браузерах (fix Microsoft update KB2998527 for Browsers).
- * @version 0.6
+ * @version 0.7
  * @copyright 2014 Юрий Сединкин
  * @license MIT (http://www.opensource.org/licenses/mit-license.php)
- * Update: 26-12-2014
+ * Update: 30-12-2014
  *
  * В данной версии:
- * 1. Откорректирован механизм определения таблицы перевода времени
+ * 1. добавлен возврат числового значения при успановке св-в Date, FullYear, Hours, Milliseconds, Minutes, Month, Seconds
+ * 2. мелкий рефакторинг
  *
  * Спасибо тем, кто участвовал в разработке и помог обнаружить ошибки:
  * Dmitrii Pakhtinov (https://github.com/devote) - метод getTimezoneOffset использующий свою таблицу сдвигов для проблемных таймзон!
+ * Ilya (https://github.com/cherya) - return в сеттерах
  * Serg Rogovtsev (https://github.com/srogovtsev) - критическая ошибка в конструкторе
  * moongrate (https://github.com/moongrate) - ошибка в методе Date.parse
  * https://github.com/es-shims/es5-shim - способ переопределения Date позаимствован из es5-shim.js
@@ -137,8 +139,6 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
       NewDate.UTC = NativeDate.UTC;
       NewDate.prototype = NativeDate.prototype;
       NewDate.prototype.constructor = NewDate;
-      NewDate.prototype._getTime = NewDate.prototype.getTime;
-      NewDate.prototype._setTime = NewDate.prototype.setTime;
 
       // setTime, getTime и valueOf переопределять не нужно
       var _dateMethods = ['Date', 'Day', 'FullYear', 'Hours', 'Milliseconds', 'Minutes', 'Month', 'Seconds'];
@@ -153,9 +153,9 @@ if ((new Date(2014, 0, 1)).getHours() != 0 || new Date(2015, 0, 7).getHours() !=
 
           if (NewDate.prototype['set' + _name]) {
             NewDate.prototype['set' + _name] = function () {
-              this._setTime(this.getTime() - this.getTimezoneOffset() * 60000);
+              this.setTime(this.getTime() - this.getTimezoneOffset() * 60000);
               NewDate.prototype['setUTC' + _name].apply(this, arguments);
-              this._setTime(toUTC(this.getUTCFullYear(), this.getUTCMonth(), this.getUTCDate(), this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds(), this.getUTCMilliseconds()));
+              this.setTime(toUTC(this.getUTCFullYear(), this.getUTCMonth(), this.getUTCDate(), this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds(), this.getUTCMilliseconds()));
               return this.getTime();
             }
           }

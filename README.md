@@ -43,6 +43,7 @@ new Date(2014, 0, 1).toString() == "Wed Jan 01 2014 01:00:00 GMT+0400 (Russia TZ
 Спасибо тем, кто участвовал в разработке и помог обнаружить ошибки:
 
 - [Dmitrii Pakhtinov] (https://github.com/devote "https://github.com/devote")- метод getTimezoneOffset использующий свою таблицу сдвигов для проблемных таймзон!
+- [Ilya] (https://github.com/cherya "https://github.com/cherya")- return в сеттерах
 - [Serg Rogovtsev](https://github.com/srogovtsev "https://github.com/srogovtsev") - критическая ошибка в конструкторе
 - [moongrate](https://github.com/moongrate "https://github.com/moongrate") - ошибка в методе Date.parse (http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.4.2)
 - [A community host for shims and polyfills that are compliant to the EcmaScript specs](https://github.com/es-shims/es5-shim "es5-shim") - способ переопределения Date позаимствован из es5-shim.js
