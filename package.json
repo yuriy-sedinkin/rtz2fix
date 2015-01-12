@@ -8,12 +8,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yuriy-sedinkin/rtz2fix"
+    "url": "https://github.com/starliner/rtz2fix"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/yuriy-sedinkin/rtz2fix/issues"
+    "url": "https://github.com/starliner/rtz2fix/issues"
   },
-  "homepage": "https://github.com/yuriy-sedinkin/rtz2fix"
+  "homepage": "https://github.com/starliner/rtz2fix"
 }
